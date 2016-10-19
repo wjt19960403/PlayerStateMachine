@@ -29,12 +29,11 @@
 
 class Player extends egret.DisplayObjectContainer {
     _main: Main;
-    //_PA: PlayAnimation;
     _label: egret.TextField;
-    _stateMachine: StateMachine;
+    _stateMachine: PalyerStateMachine;
     _body: egret.Bitmap;
-    _ifidle: boolean;
-    _ifwalk: boolean;
+    _isidle: boolean;
+    _iswalk: boolean;
 
 
     constructor(_main: Main) {
@@ -45,14 +44,14 @@ class Player extends egret.DisplayObjectContainer {
         this._main.addChild(this._body);
         this._body.anchorOffsetX = 120;
         this._body.anchorOffsetY = 120;
-        this._stateMachine = new StateMachine();
+        this._stateMachine = new PalyerStateMachine();
         this._body.x = this._main.stage.stageWidth / 2;
         this._body.y = this._main.stage.stageHeight / 2;
-        this._ifidle = true;
-        this._ifwalk = false;
+        this._isidle = true;
+        this._iswalk = false;
 
     }
-    public move(targetX: number, targetY: number) {
+    public walk(targetX: number, targetY: number) {
          egret.Tween.removeTweens(this._body);
         if (targetX > this._body.x) {
             this._body.skewY = 180;
@@ -61,10 +60,7 @@ class Player extends egret.DisplayObjectContainer {
         this._stateMachine.setState(new PlayerMoveState(this));
 
         egret.Tween.get(this._body).to({ x: targetX, y: targetY }, 2000).call( function(){this.idle()} ,this);
-       // if (this._body.x >= targetX - 5 && this._body.x <= targetX + 5 && this._body.y <= targetY + 5 && this._body.y >= targetY - 5) {
-        //    if(this._body.x==targetX&&this._body.y==targetY){
-        //     this.idle();
-        // }
+      
     }
 
     public idle() {
@@ -78,7 +74,7 @@ class Player extends egret.DisplayObjectContainer {
         var list = ["1_png","2_png"];
         var count = -1;
         egret.Ticker.getInstance().register(() => {
-            count = count + 0.2;
+            count = count + 0.99;
             if (count >= list.length) {
                 count = 0;
             }
@@ -88,12 +84,6 @@ class Player extends egret.DisplayObjectContainer {
 
 
         }, this);
-        //egret.Tween.get(walk).to({ x: targetX, y: targetY }, 300, egret.Ease.sineIn);
-        // var tw = egret.Tween.get(walk);
-        // tw.wait(200);
-        // tw.call(change, self);
-
-
     }
 
     public startidle() {
@@ -138,17 +128,14 @@ interface State {
 class PlayerMoveState extends PlayerState {
 
     onEnter() {
-
-        // egret.setTimeout(() => {
-        //     this._player.move;
-        // }, this, 500)
-        this._player._ifwalk = true;
+        
+        this._player._iswalk = true;
   
         this._player.startWalk();
       
     }
     onExit() {
-        this._player._ifwalk = false;
+        this._player._iswalk = false;
     }
 
 
@@ -161,18 +148,18 @@ class PlayerIdleState extends PlayerState {
         // egret.setTimeout(() => {
         //     this._player.idle();
         // }, this, 500)
-         this._player._ifidle = true;
+         this._player._isidle = true;
          this._player.startidle();
 
     }
     onExit() {
-        this._player._ifidle = false;
+        this._player._isidle = false;
     }
 
 
 }
 
-class StateMachine {
+class PalyerStateMachine {
     CurrentState: State;
 
     setState(e: State) {
@@ -282,58 +269,18 @@ class Main extends egret.DisplayObjectContainer {
      * Create a game scene
      */
     private createGameScene(): void {
-
-        // var sky: egret.Bitmap = this.createBitmapByName("bg_jpg");
-        // //this.addChild(sky);
-        // var stageW: number = this.stage.stageWidth;
-        // var stageH: number = this.stage.stageHeight;
-        // sky.alpha = 0.1;
-        // sky.width = stageW;
-        // sky.height = stageH;
-
         var topMask = new egret.Shape();
         topMask.graphics.beginFill(0xFFFFFF, 1);
         topMask.graphics.drawRect(0, 0, 600, 1200);
         topMask.graphics.endFill();
         topMask.y = 33;
         this.addChild(topMask);
-/*
-        this._txInfo = new egret.TextField;
-        this._txInfo.size = 24;
-        this._txInfo.textColor = 0x000000;
-        this._txInfo.lineSpacing = 10;
-        this._txInfo.multiline = true;
-        this._txInfo.text = "判断状态";
-        this._txInfo.x = 30;
-        this._txInfo.y = 100;
-        this.addChild(this._txInfo);
-*/
-        // this.stage.touchEnabled=true;
-
-
-        //    var body = new egret.Bitmap;
-        //        body.texture = RES.getRes("idle_1_png");
-        //         this.addChild(body);
-
-        //           var list = ["idle_1_png", "idle_2_png", "idle_3_png", "idle_4_png", "idle_5_png", "idle_6_png", "idle_7_png", "idle_8_png", "idle_9_png", "idle_10_png", "idle_11_png", "idle_12_png"];
-        //         var count = -1;
-        //         egret.Ticker.getInstance().register(() => {
-        //             count=count + 0.2;
-        //             if (count >= list.length) {
-        //                 count = 0;
-        //             }
-
-        //             body.texture = RES.getRes(list[Math.floor(count)]);
-
-        //         }, this);
-
         var player: Player = new Player(this);
         player.idle();
 
         this.stage.addEventListener(egret.TouchEvent.TOUCH_TAP, (evt: egret.TouchEvent) => {
 
-            //this._txInfo.text += "walk\n";
-            player.move(evt.stageX, evt.stageY);
+            player.walk(evt.stageX, evt.stageY);
 
         }, this);
 
@@ -341,19 +288,6 @@ class Main extends egret.DisplayObjectContainer {
 
 
     }
-
-
-    //  mouseDown(evt:egret.TouchEvent,player:Player)
-    //     {
-    //         console.log("Mouse Down.");
-    //         this.stage.addEventListener(egret.TouchEvent.TOUCH_MOVE,player.move( evt.stageX , evt.stageY ), this);
-    //     }
-
-
-    /**
-     * 根据name关键字创建一个Bitmap对象。name属性请参考resources/resource.json配置文件的内容。
-     * Create a Bitmap object according to name keyword.As for the property of name please refer to the configuration file of resources/resource.json.
-     */
     private createBitmapByName(name: string): egret.Bitmap {
         var result = new egret.Bitmap();
         var texture: egret.Texture = RES.getRes(name);
@@ -362,10 +296,6 @@ class Main extends egret.DisplayObjectContainer {
     }
 
 
-    /**
-     * 切换描述内容
-     * Switch to described content
-     */
     private changeDescription(textfield: egret.TextField, textFlow: Array<egret.ITextElement>): void {
         textfield.textFlow = textFlow;
     }
@@ -395,57 +325,3 @@ class Main extends egret.DisplayObjectContainer {
     }
 
 }
-
-
-
-
-// class PlayAnimation {
-
-
-//     public startWalk(_main: Main, walk: egret.Bitmap, targetX: number, targetY: number) {
-
-
-
-//         var list = ["walk_1_png", "walk_2_png", "walk_3_png", "walk_4_png", "walk_5_png", "walk_6_png", "walk_7_png", "walk_8_png", "walk_9_png", "walk_10_png", "walk_11_png", "walk_12_png"];
-//         var count = -1;
-//         var change: Function = function () {
-//             count++;
-//             if (count >= list.length) {
-//                 count = 0;
-//             }
-
-//             walk.texture = RES.getRes(list[count]);
-//             egret.Tween.get(walk).to({ x: targetX, y: targetY }, 300, egret.Ease.sineIn);
-
-//             _main.addChild(walk);
-//             var tw = egret.Tween.get(walk);
-//             tw.wait(200);
-//             tw.call(change, self);
-//         };
-
-//         change();
-
-//     }
-
-//     public startidle(_main: Main, idle: egret.Bitmap) {
-
-//         var list = ["idle_1_png", "idle_2_png", "idle_3_png", "idle_4_png", "idle_5_png", "idle_6_png", "idle_7_png", "idle_8_png", "idle_9_png", "idle_10_png", "idle_11_png", "idle_12_png"];
-//         var count = -1;
-//         var change: Function = function () {
-//             count++;
-//             if (count >= list.length) {
-//                 count = 0;
-//             }
-
-//             idle.texture = RES.getRes(list[count]);
-//             _main.addChild(idle);
-//             var tw = egret.Tween.get(idle)
-//             tw.wait(200);
-//             tw.call(change, self);
-//         };
-
-//         change();
-
-//     }
-// }
-

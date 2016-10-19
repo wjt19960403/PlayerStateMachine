@@ -36,14 +36,14 @@ var Player = (function (_super) {
         this._main.addChild(this._body);
         this._body.anchorOffsetX = 120;
         this._body.anchorOffsetY = 120;
-        this._stateMachine = new StateMachine();
+        this._stateMachine = new PalyerStateMachine();
         this._body.x = this._main.stage.stageWidth / 2;
         this._body.y = this._main.stage.stageHeight / 2;
-        this._ifidle = true;
-        this._ifwalk = false;
+        this._isidle = true;
+        this._iswalk = false;
     }
     var d = __define,c=Player,p=c.prototype;
-    p.move = function (targetX, targetY) {
+    p.walk = function (targetX, targetY) {
         egret.Tween.removeTweens(this._body);
         if (targetX > this._body.x) {
             this._body.skewY = 180;
@@ -53,10 +53,6 @@ var Player = (function (_super) {
         }
         this._stateMachine.setState(new PlayerMoveState(this));
         egret.Tween.get(this._body).to({ x: targetX, y: targetY }, 2000).call(function () { this.idle(); }, this);
-        // if (this._body.x >= targetX - 5 && this._body.x <= targetX + 5 && this._body.y <= targetY + 5 && this._body.y >= targetY - 5) {
-        //    if(this._body.x==targetX&&this._body.y==targetY){
-        //     this.idle();
-        // }
     };
     p.idle = function () {
         this._stateMachine.setState(new PlayerIdleState(this));
@@ -67,16 +63,12 @@ var Player = (function (_super) {
         var list = ["1_png", "2_png"];
         var count = -1;
         egret.Ticker.getInstance().register(function () {
-            count = count + 0.2;
+            count = count + 0.99;
             if (count >= list.length) {
                 count = 0;
             }
             _this._body.texture = RES.getRes(list[Math.floor(count)]);
         }, this);
-        //egret.Tween.get(walk).to({ x: targetX, y: targetY }, 300, egret.Ease.sineIn);
-        // var tw = egret.Tween.get(walk);
-        // tw.wait(200);
-        // tw.call(change, self);
     };
     p.startidle = function () {
         var _this = this;
@@ -110,14 +102,11 @@ var PlayerMoveState = (function (_super) {
     }
     var d = __define,c=PlayerMoveState,p=c.prototype;
     p.onEnter = function () {
-        // egret.setTimeout(() => {
-        //     this._player.move;
-        // }, this, 500)
-        this._player._ifwalk = true;
+        this._player._iswalk = true;
         this._player.startWalk();
     };
     p.onExit = function () {
-        this._player._ifwalk = false;
+        this._player._iswalk = false;
     };
     return PlayerMoveState;
 }(PlayerState));
@@ -133,19 +122,19 @@ var PlayerIdleState = (function (_super) {
         // egret.setTimeout(() => {
         //     this._player.idle();
         // }, this, 500)
-        this._player._ifidle = true;
+        this._player._isidle = true;
         this._player.startidle();
     };
     p.onExit = function () {
-        this._player._ifidle = false;
+        this._player._isidle = false;
     };
     return PlayerIdleState;
 }(PlayerState));
 egret.registerClass(PlayerIdleState,'PlayerIdleState');
-var StateMachine = (function () {
-    function StateMachine() {
+var PalyerStateMachine = (function () {
+    function PalyerStateMachine() {
     }
-    var d = __define,c=StateMachine,p=c.prototype;
+    var d = __define,c=PalyerStateMachine,p=c.prototype;
     p.setState = function (e) {
         if (this.CurrentState != null) {
             this.CurrentState.onExit();
@@ -153,9 +142,9 @@ var StateMachine = (function () {
         this.CurrentState = e;
         e.onEnter();
     };
-    return StateMachine;
+    return PalyerStateMachine;
 }());
-egret.registerClass(StateMachine,'StateMachine');
+egret.registerClass(PalyerStateMachine,'PalyerStateMachine');
 var Main = (function (_super) {
     __extends(Main, _super);
     function Main() {
@@ -232,69 +221,24 @@ var Main = (function (_super) {
      * Create a game scene
      */
     p.createGameScene = function () {
-        // var sky: egret.Bitmap = this.createBitmapByName("bg_jpg");
-        // //this.addChild(sky);
-        // var stageW: number = this.stage.stageWidth;
-        // var stageH: number = this.stage.stageHeight;
-        // sky.alpha = 0.1;
-        // sky.width = stageW;
-        // sky.height = stageH;
         var topMask = new egret.Shape();
         topMask.graphics.beginFill(0xFFFFFF, 1);
         topMask.graphics.drawRect(0, 0, 600, 1200);
         topMask.graphics.endFill();
         topMask.y = 33;
         this.addChild(topMask);
-        /*
-                this._txInfo = new egret.TextField;
-                this._txInfo.size = 24;
-                this._txInfo.textColor = 0x000000;
-                this._txInfo.lineSpacing = 10;
-                this._txInfo.multiline = true;
-                this._txInfo.text = "判断状态";
-                this._txInfo.x = 30;
-                this._txInfo.y = 100;
-                this.addChild(this._txInfo);
-        */
-        // this.stage.touchEnabled=true;
-        //    var body = new egret.Bitmap;
-        //        body.texture = RES.getRes("idle_1_png");
-        //         this.addChild(body);
-        //           var list = ["idle_1_png", "idle_2_png", "idle_3_png", "idle_4_png", "idle_5_png", "idle_6_png", "idle_7_png", "idle_8_png", "idle_9_png", "idle_10_png", "idle_11_png", "idle_12_png"];
-        //         var count = -1;
-        //         egret.Ticker.getInstance().register(() => {
-        //             count=count + 0.2;
-        //             if (count >= list.length) {
-        //                 count = 0;
-        //             }
-        //             body.texture = RES.getRes(list[Math.floor(count)]);
-        //         }, this);
         var player = new Player(this);
         player.idle();
         this.stage.addEventListener(egret.TouchEvent.TOUCH_TAP, function (evt) {
-            //this._txInfo.text += "walk\n";
-            player.move(evt.stageX, evt.stageY);
+            player.walk(evt.stageX, evt.stageY);
         }, this);
     };
-    //  mouseDown(evt:egret.TouchEvent,player:Player)
-    //     {
-    //         console.log("Mouse Down.");
-    //         this.stage.addEventListener(egret.TouchEvent.TOUCH_MOVE,player.move( evt.stageX , evt.stageY ), this);
-    //     }
-    /**
-     * 根据name关键字创建一个Bitmap对象。name属性请参考resources/resource.json配置文件的内容。
-     * Create a Bitmap object according to name keyword.As for the property of name please refer to the configuration file of resources/resource.json.
-     */
     p.createBitmapByName = function (name) {
         var result = new egret.Bitmap();
         var texture = RES.getRes(name);
         result.texture = texture;
         return result;
     };
-    /**
-     * 切换描述内容
-     * Switch to described content
-     */
     p.changeDescription = function (textfield, textFlow) {
         textfield.textFlow = textFlow;
     };
@@ -320,39 +264,4 @@ var Main = (function (_super) {
     return Main;
 }(egret.DisplayObjectContainer));
 egret.registerClass(Main,'Main');
-// class PlayAnimation {
-//     public startWalk(_main: Main, walk: egret.Bitmap, targetX: number, targetY: number) {
-//         var list = ["walk_1_png", "walk_2_png", "walk_3_png", "walk_4_png", "walk_5_png", "walk_6_png", "walk_7_png", "walk_8_png", "walk_9_png", "walk_10_png", "walk_11_png", "walk_12_png"];
-//         var count = -1;
-//         var change: Function = function () {
-//             count++;
-//             if (count >= list.length) {
-//                 count = 0;
-//             }
-//             walk.texture = RES.getRes(list[count]);
-//             egret.Tween.get(walk).to({ x: targetX, y: targetY }, 300, egret.Ease.sineIn);
-//             _main.addChild(walk);
-//             var tw = egret.Tween.get(walk);
-//             tw.wait(200);
-//             tw.call(change, self);
-//         };
-//         change();
-//     }
-//     public startidle(_main: Main, idle: egret.Bitmap) {
-//         var list = ["idle_1_png", "idle_2_png", "idle_3_png", "idle_4_png", "idle_5_png", "idle_6_png", "idle_7_png", "idle_8_png", "idle_9_png", "idle_10_png", "idle_11_png", "idle_12_png"];
-//         var count = -1;
-//         var change: Function = function () {
-//             count++;
-//             if (count >= list.length) {
-//                 count = 0;
-//             }
-//             idle.texture = RES.getRes(list[count]);
-//             _main.addChild(idle);
-//             var tw = egret.Tween.get(idle)
-//             tw.wait(200);
-//             tw.call(change, self);
-//         };
-//         change();
-//     }
-// }
 //# sourceMappingURL=Main.js.map
