@@ -32,7 +32,7 @@ var Player = (function (_super) {
         _super.call(this);
         this._main = _main;
         this._body = new egret.Bitmap;
-        this._body.texture = RES.getRes("3_png");
+        this._body.texture = RES.getRes("待机1_png");
         this._main.addChild(this._body);
         this._body.anchorOffsetX = 120;
         this._body.anchorOffsetY = 120;
@@ -60,10 +60,10 @@ var Player = (function (_super) {
     };
     p.startWalk = function () {
         var _this = this;
-        var list = ["1_png", "2_png"];
+        var list = ["跑1_png", "跑2_png", "跑3_png", "跑4_png", "跑5_png", "跑6_png", "跑7_png", "跑8_png"];
         var count = -1;
         egret.Ticker.getInstance().register(function () {
-            count = count + 0.99;
+            count = count + 0.2;
             if (count >= list.length) {
                 count = 0;
             }
@@ -72,7 +72,7 @@ var Player = (function (_super) {
     };
     p.startidle = function () {
         var _this = this;
-        var list = ["3_png", "4_png"];
+        var list = ["待机1_png", "待机2_png", "待机3_png", "待机4_png"];
         var count = -1;
         egret.Ticker.getInstance().register(function () {
             count = count + 0.2;
